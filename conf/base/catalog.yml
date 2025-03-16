@@ -2,3 +2,16 @@
 #
 # Documentation for this file format can be found in "The Data Catalog"
 # Link: https://docs.kedro.org/en/stable/data/data_catalog.html
+mncaa_tourney_detailed_results:
+  type: ibis.FileDataset
+  filepath: data/01_raw/MNCAATourneyDetailedResults.csv
+  file_format: csv
+
+wncaa_tourney_detailed_results:
+  type: ibis.FileDataset
+  filepath: data/01_raw/WNCAATourneyDetailedResults.csv
+  file_format: csv
+
+tourney_results:
+  type: ibis.TableDataset
+  table_name: tourney_results
