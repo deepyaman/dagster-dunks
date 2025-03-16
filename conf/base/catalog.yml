@@ -12,22 +12,22 @@ womens_ncaa_tourney_seeds:
   filepath: data/01_raw/WNCAATourneySeeds.csv
   file_format: csv
 
-mens_regular_season_detailed_results:
+mens_regular_season_results:
   type: ibis.FileDataset
   filepath: data/01_raw/MRegularSeasonDetailedResults.csv
   file_format: csv
 
-womens_regular_season_detailed_results:
+womens_regular_season_results:
   type: ibis.FileDataset
   filepath: data/01_raw/WRegularSeasonDetailedResults.csv
   file_format: csv
 
-mens_ncaa_tourney_detailed_results:
+mens_ncaa_tourney_results:
   type: ibis.FileDataset
   filepath: data/01_raw/MNCAATourneyDetailedResults.csv
   file_format: csv
 
-womens_ncaa_tourney_detailed_results:
+womens_ncaa_tourney_results:
   type: ibis.FileDataset
   filepath: data/01_raw/WNCAATourneyDetailedResults.csv
   file_format: csv
@@ -36,10 +36,10 @@ ncaa_tourney_seeds:
   type: ibis.TableDataset
   table_name: ncaa_tourney_seeds
 
-regular_season_detailed_results:
+regular_season_results:
   type: ibis.TableDataset
-  table_name: regular_season_detailed_results
+  table_name: regular_season_results
 
-ncaa_tourney_detailed_results:
+ncaa_tourney_results:
   type: ibis.TableDataset
-  table_name: ncaa_tourney_detailed_results
+  table_name: ncaa_tourney_results

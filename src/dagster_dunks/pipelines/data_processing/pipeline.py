@@ -21,18 +21,18 @@ def create_pipeline(**kwargs) -> Pipeline:
             node(
                 func=ibis.union,
                 inputs=[
-                    "mens_regular_season_detailed_results",
-                    "womens_regular_season_detailed_results",
+                    "mens_regular_season_results",
+                    "womens_regular_season_results",
                 ],
-                outputs="regular_season_detailed_results",
+                outputs="regular_season_results",
             ),
             node(
                 func=ibis.union,
                 inputs=[
-                    "mens_ncaa_tourney_detailed_results",
-                    "womens_ncaa_tourney_detailed_results",
+                    "mens_ncaa_tourney_results",
+                    "womens_ncaa_tourney_results",
                 ],
-                outputs="ncaa_tourney_detailed_results",
+                outputs="ncaa_tourney_results",
             ),
         ]
     )
