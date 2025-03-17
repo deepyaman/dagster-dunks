@@ -6,7 +6,7 @@ from dagster_dunks.pipelines.data_processing.nodes import prepare_results_by_tea
 
 
 @pytest.fixture
-def results():
+def results(request):
     return ibis.memtable(
         {
             "Season": [2003],
@@ -15,13 +15,18 @@ def results():
             "WScore": [68],
             "LTeamID": [1328],
             "LScore": [62],
-            "WLoc": ["N"],
+            "WLoc": [request.param],
             "NumOT": [0],
         }
     )
 
 
-def test_prepare_results_by_team(results):
+@pytest.mark.parametrize(
+    ("results", "location"),
+    [("H", ["H", "A"]), ("A", ["A", "H"]), ("N", ["N", "N"])],
+    indirect=["results"],
+)
+def test_prepare_results_by_team(results, location):
     got = prepare_results_by_team(results)
     expected = ibis.memtable(
         {
@@ -31,7 +36,7 @@ def test_prepare_results_by_team(results):
             "Score": [68, 62],
             "opponent_TeamID": [1328, 1104],
             "opponent_Score": [62, 68],
-            "location": ["N", "N"],
+            "location": location,
             "NumOT": [0, 0],
         }
     )
