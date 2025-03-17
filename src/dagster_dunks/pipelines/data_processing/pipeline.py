@@ -6,6 +6,8 @@ generated using Kedro 0.19.11
 import ibis
 from kedro.pipeline import Pipeline, node, pipeline  # noqa
 
+from .nodes import prepare_results_by_team
+
 
 def create_pipeline(**kwargs) -> Pipeline:
     return pipeline(
@@ -33,6 +35,16 @@ def create_pipeline(**kwargs) -> Pipeline:
                     "womens_ncaa_tourney_results",
                 ],
                 outputs="ncaa_tourney_results",
+            ),
+            node(
+                func=prepare_results_by_team,
+                inputs="regular_season_results",
+                outputs="regular_season_results_by_team",
+            ),
+            node(
+                func=prepare_results_by_team,
+                inputs="ncaa_tourney_results",
+                outputs="ncaa_tourney_results_by_team",
             ),
         ]
     )
