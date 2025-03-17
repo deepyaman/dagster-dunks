@@ -19,7 +19,7 @@ dev = [ "pytest-cov~=3.0", "pytest-mock>=1.7.1, <2.0", "pytest~=7.2", "ruff>=0.2
 package_name = "dagster_dunks"
 project_name = "Dagster Dunks"
 kedro_init_version = "0.19.11"
-tools = "['Linting', 'Data Structure']"
+tools = "['Linting', 'Testing', 'Data Structure']"
 example_pipeline = "False"
 source_dir = "src"
 
@@ -32,6 +32,14 @@ select = [ "F", "W", "E", "I", "UP", "PL", "T201",]
 ignore = [ "E501",]
 
 [project.entry-points."kedro.hooks"]
+
+[tool.pytest.ini_options]
+addopts = "--cov-report term-missing --cov src/dagster_dunks -ra"
+
+[tool.coverage.report]
+fail_under = 0
+show_missing = true
+exclude_lines = [ "pragma: no cover", "raise NotImplementedError",]
 
 [tool.ruff.format]
 docstring-code-format = true
