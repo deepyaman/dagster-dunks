@@ -15,7 +15,7 @@ def results(request):
             "WScore": [68],
             "LTeamID": [1328],
             "LScore": [62],
-            "WLoc": [request.param],
+            "WLoc": [request.param if hasattr(request, "param") else "N"],
             "NumOT": [0],
         }
     )
@@ -41,3 +41,10 @@ def test_prepare_results_by_team(results, location):
         }
     )
     assert_frame_equal(got.execute(), expected.execute())
+
+
+@pytest.mark.parametrize("column", ["WTeamID", "LTeamID"])
+def test_prepare_results_by_team_mismatched_columns(results, column):
+    results = results.drop(column)
+    with pytest.raises(AssertionError):
+        prepare_results_by_team(results)
