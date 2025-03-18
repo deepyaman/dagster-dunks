@@ -6,7 +6,10 @@ generated using Kedro 0.19.11
 import logging
 
 import numpy as np
+import pandas as pd
 import xgboost as xgb
+from scipy.interpolate import UnivariateSpline
+from sklearn.metrics import log_loss
 from sklearn.model_selection import KFold
 
 
@@ -84,3 +87,92 @@ def make_out_of_fold_predictions(model_input_table, iteration_counts, params):
         oof_preds.append(np.clip(preds, -30, 30))
 
     return oof_preds
+
+
+def fit_spline_model(model_input_table, oof_preds, master_table):
+    """
+    This function takes the model input table and the out-of-fold predictions
+    and fits a spline model.
+    """
+
+    logger = logging.getLogger(__name__)
+
+    tourney_data = master_table.execute()
+    y = model_input_table.y.execute().to_numpy()
+
+    repeat_cv = 3  # recommend 10
+
+    val_cv = []
+    spline_model = []
+
+    for i in range(repeat_cv):
+        dat = list(zip(oof_preds[i], np.where(y > 0, 1, 0)))
+        dat = sorted(dat, key=lambda x: x[0])
+        datdict = {}
+        for k in range(len(dat)):
+            datdict[dat[k][0]] = dat[k][1]
+        spline_model.append(
+            UnivariateSpline(list(datdict.keys()), list(datdict.values()))
+        )
+        spline_fit = spline_model[i](oof_preds[i])
+        spline_fit = np.clip(spline_fit, 0.025, 0.975)
+        spline_fit[
+            (tourney_data.Seed == 1)
+            & (tourney_data.opponent_Seed == 16)
+            & (tourney_data.Score > tourney_data.opponent_Score)
+        ] = 1.0
+        spline_fit[
+            (tourney_data.Seed == 2)
+            & (tourney_data.opponent_Seed == 15)
+            & (tourney_data.Score > tourney_data.opponent_Score)
+        ] = 1.0
+        spline_fit[
+            (tourney_data.Seed == 3)
+            & (tourney_data.opponent_Seed == 14)
+            & (tourney_data.Score > tourney_data.opponent_Score)
+        ] = 1.0
+        spline_fit[
+            (tourney_data.Seed == 4)
+            & (tourney_data.opponent_Seed == 13)
+            & (tourney_data.Score > tourney_data.opponent_Score)
+        ] = 1.0
+        spline_fit[
+            (tourney_data.Seed == 16)
+            & (tourney_data.opponent_Seed == 1)
+            & (tourney_data.Score < tourney_data.opponent_Score)
+        ] = 0.0
+        spline_fit[
+            (tourney_data.Seed == 15)
+            & (tourney_data.opponent_Seed == 2)
+            & (tourney_data.Score < tourney_data.opponent_Score)
+        ] = 0.0
+        spline_fit[
+            (tourney_data.Seed == 14)
+            & (tourney_data.opponent_Seed == 3)
+            & (tourney_data.Score < tourney_data.opponent_Score)
+        ] = 0.0
+        spline_fit[
+            (tourney_data.Seed == 13)
+            & (tourney_data.opponent_Seed == 4)
+            & (tourney_data.Score < tourney_data.opponent_Score)
+        ] = 0.0
+
+        val_cv.append(
+            pd.DataFrame(
+                {
+                    "y": np.where(y > 0, 1, 0),
+                    "pred": spline_fit,
+                    "season": tourney_data.Season,
+                }
+            )
+        )
+        logger.info(
+            "adjusted logloss of cvsplit %d: %f",
+            i,
+            log_loss(np.where(y > 0, 1, 0), spline_fit),
+        )
+
+    val_cv = pd.concat(val_cv)
+    val_cv.groupby("season").apply(lambda x: log_loss(x.y, x.pred))
+
+    return spline_model
