@@ -3,3 +3,18 @@
 #
 # Documentation for this file format can be found in "Parameters"
 # Link: https://docs.kedro.org/en/0.19.11/configuration/parameters.html
+
+box_score_cols:
+  - FGM
+  - FGA
+  - FGM3
+  - FGA3
+  - FTM
+  - FTA
+  - OR
+  - DR
+  - Ast
+  - TO
+  - Stl
+  - Blk
+  - PF

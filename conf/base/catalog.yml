@@ -2,6 +2,7 @@
 #
 # Documentation for this file format can be found in "The Data Catalog"
 # Link: https://docs.kedro.org/en/stable/data/data_catalog.html
+
 mens_ncaa_tourney_seeds:
   type: ibis.FileDataset
   filepath: data/01_raw/MNCAATourneySeeds.csv
