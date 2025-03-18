@@ -49,3 +49,12 @@ team_quality_scores:
   type: ibis.FileDataset
   filepath: data/04_feature/team_quality_scores.csv
   file_format: csv
+
+sample_submission:
+  type: ibis.FileDataset
+  filepath: data/01_raw/SampleSubmissionStage2.csv
+  file_format: csv
+
+submission:
+  type: pandas.CSVDataset
+  filepath: data/07_model_output/submission.csv
