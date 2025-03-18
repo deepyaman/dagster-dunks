@@ -21,8 +21,12 @@ def find_iteration_counts(model_input_table, params):
 
     logger = logging.getLogger(__name__)
 
-    X = model_input_table.drop("y").execute().to_numpy()
-    y = model_input_table.y.execute().to_numpy()
+    X = (
+        model_input_table.copy()
+        .drop(columns=["Season", "TeamID", "opponent_TeamID", "y"])
+        .to_numpy()
+    )
+    y = model_input_table.copy()["y"]
     dtrain = xgb.DMatrix(X, label=y)
 
     def cauchyobj(preds, dtrain):
@@ -64,8 +68,12 @@ def make_out_of_fold_predictions(model_input_table, iteration_counts, params):
 
     logger = logging.getLogger(__name__)
 
-    X = model_input_table.drop("y").execute().to_numpy()
-    y = model_input_table.y.execute().to_numpy()
+    X = (
+        model_input_table.copy()
+        .drop(columns=["Season", "TeamID", "opponent_TeamID", "y"])
+        .to_numpy()
+    )
+    y = model_input_table.copy()["y"]
 
     repeat_cv = 3  # recommend 10
 
@@ -89,16 +97,16 @@ def make_out_of_fold_predictions(model_input_table, iteration_counts, params):
     return oof_preds
 
 
-def fit_spline_model(model_input_table, oof_preds, master_table):
+def fit_spline_model(master_table, oof_preds):
     """
-    This function takes the model input table and the out-of-fold predictions
+    This function takes the master table and the out-of-fold predictions
     and fits a spline model.
     """
 
     logger = logging.getLogger(__name__)
 
     tourney_data = master_table.execute()
-    y = model_input_table.y.execute().to_numpy()
+    y = tourney_data["Score"] - tourney_data["opponent_Score"]
 
     repeat_cv = 3  # recommend 10
 
