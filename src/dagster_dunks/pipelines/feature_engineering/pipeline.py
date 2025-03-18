@@ -5,7 +5,12 @@ generated using Kedro 0.19.11
 
 from kedro.pipeline import Pipeline, node, pipeline  # noqa
 
-from .nodes import calculate_season_stats, join_season_stats
+from .nodes import (
+    calculate_season_stats,
+    calculate_win_ratios,
+    join_season_stats,
+    join_win_ratios,
+)
 
 
 def create_pipeline(**kwargs) -> Pipeline:
@@ -24,6 +29,19 @@ def create_pipeline(**kwargs) -> Pipeline:
                     "params:box_score_cols",
                 ],
                 outputs="ncaa_tourney_results_with_regular_season_averages",
+            ),
+            node(
+                calculate_win_ratios,
+                inputs=["regular_season_results_by_team"],
+                outputs="win_ratios",
+            ),
+            node(
+                join_win_ratios,
+                inputs=[
+                    "ncaa_tourney_results_with_regular_season_averages",
+                    "win_ratios",
+                ],
+                outputs="ncaa_tourney_results_with_win_ratios",
             ),
         ]
     )
