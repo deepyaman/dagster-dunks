@@ -3,6 +3,9 @@ This is a boilerplate pipeline 'feature_engineering'
 generated using Kedro 0.19.11
 """
 
+import ibis
+import pandas as pd
+import statsmodels.api as sm
 from ibis import _
 
 SELECTION_SUNDAY_DAY_NUM = 132
@@ -44,4 +47,50 @@ def join_win_ratios(ncaa_tourney_results_by_team, win_ratios):
     return ncaa_tourney_results_by_team.join(win_ratios, ("Season", "TeamID")).join(
         win_ratios.rename("opponent_{name}").rename(Season="opponent_Season"),
         ("Season", "opponent_TeamID"),
+    )
+
+
+def calculate_team_quality_scores(
+    regular_season_results_by_team, ncaa_tourney_seeds, seasons: list[int]
+):
+    """Calculate quality score for each team playing in NCAA tourney."""
+    team_quality_scores = []
+    for season in seasons:
+        seeded_teams = ncaa_tourney_seeds.filter(_.Season == season).TeamID.execute()
+        formula = "win ~ -1 + TeamID + opponent_TeamID"
+        data = regular_season_results_by_team.filter(
+            (_.Season == season)
+            & (_.TeamID.isin(seeded_teams))
+            & (_.opponent_TeamID.isin(seeded_teams))
+        ).select(
+            _.TeamID.cast(str).name("TeamID"),
+            _.opponent_TeamID.cast(str).name("opponent_TeamID"),
+            (_.Score - _.opponent_Score > 0).name("win"),
+        )
+        glm = sm.GLM.from_formula(
+            formula, data=data.execute(), family=sm.families.Binomial()
+        ).fit()
+        quality_scores = pd.DataFrame(glm.params).reset_index()
+        quality_scores.columns = ["TeamID", "quality_score"]
+        team_quality_scores.append(
+            ibis.memtable(quality_scores)
+            .filter(_.TeamID.startswith("TeamID"))
+            .select(
+                Season=season,
+                TeamID=_.TeamID.substr(len("TeamID["), 4).cast(int),
+                quality_score=_.quality_score,
+            )
+        )
+
+    return ibis.union(*team_quality_scores)
+
+
+def join_team_quality_scores(ncaa_tourney_results_by_team, team_quality_scores):
+    """Join quality score and opposing team's quality score to results."""
+    return ncaa_tourney_results_by_team.join(
+        team_quality_scores, ("Season", "TeamID"), how="left"
+    ).join(
+        team_quality_scores.rename("opponent_{name}").rename(Season="opponent_Season"),
+        ("Season", "opponent_TeamID"),
+        how="left",
     )

@@ -44,3 +44,8 @@ regular_season_results:
 ncaa_tourney_results:
   type: ibis.TableDataset
   table_name: ncaa_tourney_results
+
+team_quality_scores:
+  type: ibis.FileDataset
+  filepath: data/04_feature/team_quality_scores.csv
+  file_format: csv
