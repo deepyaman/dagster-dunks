@@ -7,6 +7,7 @@ import ibis
 import pandas as pd
 import statsmodels.api as sm
 from ibis import _
+from ibis import selectors as s
 
 SELECTION_SUNDAY_DAY_NUM = 132
 
@@ -87,10 +88,36 @@ def calculate_team_quality_scores(
 
 def join_team_quality_scores(ncaa_tourney_results_by_team, team_quality_scores):
     """Join quality score and opposing team's quality score to results."""
-    return ncaa_tourney_results_by_team.join(
-        team_quality_scores, ("Season", "TeamID"), how="left"
-    ).join(
-        team_quality_scores.rename("opponent_{name}").rename(Season="opponent_Season"),
-        ("Season", "opponent_TeamID"),
-        how="left",
+    return (
+        ncaa_tourney_results_by_team.join(
+            team_quality_scores, ("Season", "TeamID"), how="left"
+        )
+        .drop(s.endswith("_right"))
+        .join(
+            team_quality_scores.rename("opponent_{name}").rename(
+                Season="opponent_Season"
+            ),
+            ("Season", "opponent_TeamID"),
+            how="left",
+        )
+        .drop(s.endswith("_right"))
+    )
+
+
+def calculate_seeds(ncaa_tourney_seeds):
+    """Calculate seeds for each team."""
+    return ncaa_tourney_seeds.mutate(Seed=_.Seed.substr(1, 2).cast(int))
+
+
+def join_seeds(ncaa_tourney_results_by_team, seeds):
+    """Join seeds to results."""
+    return (
+        ncaa_tourney_results_by_team.join(seeds, ("Season", "TeamID"), how="left")
+        .drop(s.endswith("_right"))
+        .join(
+            seeds.rename("opponent_{name}").rename(Season="opponent_Season"),
+            ("Season", "opponent_TeamID"),
+            how="left",
+        )
+        .drop(s.endswith("_right"))
     )

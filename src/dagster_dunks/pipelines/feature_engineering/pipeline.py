@@ -7,9 +7,11 @@ from kedro.pipeline import Pipeline, node, pipeline  # noqa
 
 from .nodes import (
     calculate_season_stats,
+    calculate_seeds,
     calculate_team_quality_scores,
     calculate_win_ratios,
     join_season_stats,
+    join_seeds,
     join_team_quality_scores,
     join_win_ratios,
 )
@@ -61,6 +63,16 @@ def create_pipeline(**kwargs) -> Pipeline:
                     "team_quality_scores",
                 ],
                 outputs="ncaa_tourney_results_with_team_quality_scores",
+            ),
+            node(
+                calculate_seeds,
+                inputs="ncaa_tourney_seeds",
+                outputs="seeds",
+            ),
+            node(
+                join_seeds,
+                inputs=["ncaa_tourney_results_with_team_quality_scores", "seeds"],
+                outputs="ncaa_tourney_results_with_seeds",
             ),
         ]
     )
