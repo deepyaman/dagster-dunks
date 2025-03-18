@@ -3,11 +3,11 @@ requires = [ "setuptools",]
 build-backend = "setuptools.build_meta"
 
 [project]
-requires-python = ">=3.9"
+requires-python = ">=3.9, <3.12"
 name = "dagster-dunks"
 readme = "README.md"
 dynamic = [ "version",]
-dependencies = [ "ipython>=8.10", "jupyterlab>=3.0", "notebook", "kedro~=0.19.11", "kedro-datasets[ibis-duckdb] @ git+https://github.com/kedro-org/kedro-plugins.git/#subdirectory=kedro-datasets", "statsmodels",]
+dependencies = [ "ipython>=8.10", "jupyterlab>=3.0", "notebook", "kedro~=0.19.11", "kedro-datasets[ibis-duckdb] @ git+https://github.com/kedro-org/kedro-plugins.git/#subdirectory=kedro-datasets", "statsmodels", "xgboost[scikit-learn]",]
 
 [project.scripts]
 dagster-dunks = "dagster_dunks.__main__:main"
