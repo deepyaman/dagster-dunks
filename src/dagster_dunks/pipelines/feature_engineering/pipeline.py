@@ -6,10 +6,15 @@ generated using Kedro 0.19.11
 from kedro.pipeline import Pipeline, node, pipeline  # noqa
 
 from .nodes import (
+    calculate_avg_score_diff,
     calculate_season_stats,
+    calculate_seed_diff,
     calculate_seeds,
     calculate_team_quality_scores,
     calculate_win_ratios,
+    create_model_input_table,
+    create_target,
+    encode_location,
     join_season_stats,
     join_seeds,
     join_team_quality_scores,
@@ -72,7 +77,39 @@ def create_pipeline(**kwargs) -> Pipeline:
             node(
                 join_seeds,
                 inputs=["ncaa_tourney_results_with_team_quality_scores", "seeds"],
-                outputs="ncaa_tourney_results_with_seeds",
+                outputs="master_table",
+            ),
+            node(
+                encode_location,
+                inputs="master_table",
+                outputs="encoded_location",
+            ),
+            node(
+                calculate_avg_score_diff,
+                inputs="master_table",
+                outputs="avg_score_diff",
+            ),
+            node(
+                calculate_seed_diff,
+                inputs="master_table",
+                outputs="seed_diff",
+            ),
+            node(
+                create_target,
+                inputs="master_table",
+                outputs="target",
+            ),
+            node(
+                create_model_input_table,
+                inputs=[
+                    "master_table",
+                    "ncaa_tourney_results_by_team",
+                    "encoded_location",
+                    "avg_score_diff",
+                    "seed_diff",
+                    "target",
+                ],
+                outputs="model_input_table",
             ),
         ]
     )

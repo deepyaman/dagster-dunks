@@ -121,3 +121,40 @@ def join_seeds(ncaa_tourney_results_by_team, seeds):
         )
         .drop(s.endswith("_right"))
     )
+
+
+def encode_location(master_table):
+    """Encode location feature."""
+    return master_table.location.cases(("H", 1), ("A", -1), else_=0).name(
+        "encoded_location"
+    )
+
+
+def calculate_avg_score_diff(master_table):
+    """Calculate average score diff between teams during main season."""
+    return (
+        (2 * master_table.avg_FGM + master_table.avg_FGM3 + master_table.avg_FTM)
+        - (
+            2 * master_table.opponent_avg_FGM
+            + master_table.opponent_avg_FGM3
+            + master_table.opponent_avg_FTM
+        )
+    ).name("avg_score_diff")
+
+
+def calculate_seed_diff(master_table):
+    """Calculate seed diff between two teams before the NCAA tourney."""
+    return (master_table.Seed - master_table.opponent_Seed).name("seed_diff")
+
+
+def create_target(master_table):
+    """Create target column for the model."""
+    return (master_table.Score - master_table.opponent_Score).name("y")
+
+
+def create_model_input_table(master_table, ncaa_tourney_results_by_team, *features):
+    """Create model input table."""
+    return master_table.mutate(*features).drop(
+        s.cols(*ncaa_tourney_results_by_team.columns)
+        & ~s.cols("Season", "TeamID", "opponent_TeamID")
+    )
